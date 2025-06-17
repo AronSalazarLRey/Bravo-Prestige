@@ -591,6 +591,7 @@
           grid-template-columns: repeat(2, 1fr);
           grid-template-rows: repeat(1, 25rem);
           gap: 8px;
+          padding-bottom: 40px;
         }
     
         .container-address {
@@ -629,6 +630,9 @@
           border-radius: 4px;
           border: 1px solid #ddd;
         }
+        .magecomp-round-btns{
+          display:none;
+        }
       </style>
       <script>
         let map;
@@ -636,6 +640,8 @@
         let geocoder;
         let autocomplete;
         let lastMarker = null; // Para mantener referencia al último marcador añadido
+
+
     
         function initMap() {
           // Mapa inicial
@@ -896,12 +902,31 @@
         }
       </script>
       <!-- Cargar la API de Google Maps con tu clave -->
-      <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDElCwUcsmkV4T72lsT-h2CWPCqqjUOkEs&libraries=places&callback=initMap"
-        async defer></script>
-    
+      <script>
+        function loadGoogleMaps() {
+          if (!window.google || !window.google.maps) {
+            var script = document.createElement('script');
+            script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDElCwUcsmkV4T72lsT-h2CWPCqqjUOkEs&libraries=places&callback=initMap";
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+          } else {
+            initMap();
+          }
+        }
+        document.addEventListener('DOMContentLoaded', loadGoogleMaps);
+      </script>
       <script>
         document.addEventListener('DOMContentLoaded', function () {
+
+          //Eliminar iconos de inicio de sesion rapido, si existen
+          const iconsSesion = document.querySelector('.magecomp-round-btns');
+          if (iconsSesion) {
+              iconsSesion.remove(); 
+          }
+          
+
+          
           var addressForm = document.getElementById('address-form');
           var checkoutBtn = document.getElementById('checkout-btn-cart');
           if (checkoutBtn) {
@@ -1083,7 +1108,8 @@
                 </noscript>
 
                 {%- assign checkout_button = 'cart.general.checkout' | t -%}
-                {%- render 'button', type: 'submit', content: checkout_button, name: 'checkout' -%}
+                
+                <button type="submit" id="checkout-btn-cart" class="button" name="checkout">Finalizar compra</button>
               </div>
             </div>
           </div>
