@@ -1,0 +1,417 @@
+<div id="look-slider" class="look-slider">
+  <!-- Slide 1 -->
+  <div class="slide" id="slide-1">
+    <div class="product-grid">
+      {% assign gifts_collection = collections['gifts'] %}
+      {% for product in gifts_collection.products %}
+        <div class="product-card2" data-handle="{{ product.handle }}" data-variant-id="{{ product.variants.first.id }}" data-slide="1" onclick="handleCardClick(event, this)">
+          <img src="{{ product.featured_image | img_url: 'medium' }}" alt="{{ product.title }}">
+          <p class="h6">{{ product.title }}</p>
+          
+            {%- render 'product-rating', product: product, show_empty: settings.show_product_rating_if_empty, display_mode: settings.product_rating_mode -%}
+          
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Slide 2 -->
+  <div class="slide" id="slide-2">
+    {% for product in collections['gifts'].products %}
+      <div class="complementary-group" id="complementary-{{ product.handle }}" style="display: none;">
+        <div class="product-grid">
+          {% for related_product in product.metafields.custom.completatulook.value %}
+            <div class="product-card2" data-variant-id="{{ related_product.variants.first.id }}" data-product-handle="{{ related_product.handle }}" data-slide="2" onclick="handleCardClick(event, this)">
+              <img src="{{ related_product.featured_image | img_url: 'medium' }}" alt="{{ related_product.title }}">
+               <p class="h6">{{ related_product.title }}</p>
+              {%- render 'product-rating', product: product, show_empty: settings.show_product_rating_if_empty, display_mode: settings.product_rating_mode -%}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Slide 3 -->
+  <div class="slide" id="slide-3">
+    <div class="final-selection">
+      <div id="selected-summary" class="product-grid2">
+
+      </div>
+      <button class="button btn-comprar" onclick="addToCart()">COMPRAR</button>
+    </div>
+  </div>
+
+  <!-- Dots -->
+  <div class="navigation-dots">
+    <span class="dot active" onclick="goToSlide(1)"></span>
+    <span class="dot" onclick="goToSlide(2)"></span>
+    <span class="dot" onclick="validateBeforeSlide3()"></span>
+  </div>
+</div>
+
+<style>
+  .look-slider { position: relative; overflow: hidden; }
+  .slide { display: none; padding: 20px; }
+  .slide.active { display: block; }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 16px;
+  }
+  .product-grid2{
+    justify-self: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 16px;
+  }
+  
+  .product-card2 {
+    border: 1px solid #ffffff;
+    padding: 10px;
+    text-align: center;
+    transition: border-color 0.3s;
+    cursor: pointer;
+    display: grid;
+    grid-template-rows: repeat(2, 0fr);
+    justify-items: center;
+    gap:20px;
+  }
+  .product-card2.selected {
+    border-color: #fd0000;
+    border-radius: 15px;
+  }
+  
+  .navigation-dots { text-align: center; margin-top: 20px; }
+  .dot {
+    height: 12px;
+    width: 12px;
+    margin: 0 5px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+  }
+  .dot.active { background-color: #333; }
+
+  /*BOTONES*/
+  
+  .color-buttons {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .color-button {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 4px;
+    cursor: pointer;
+    border: 1px solid rgb(207 207 207);
+  }
+
+  .color-button.active {
+    outline: 1px solid #000;
+    outline-offset: 2px;
+  }
+
+  .variant-select-group {
+    margin-top: 10px;
+  }
+
+  .size-select {
+    margin-top: 10px;
+    padding: 6px;
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px, solid, rgba(28, 28, 28, 1);
+  }
+  .btn-comprar {
+      --initial-gradient: linear-gradient(rgb(255 0 0), rgb(255 0 0));
+  }
+  
+
+
+</style>
+
+<script>
+  let currentSlide = 1;
+  let selectedSlide1Variant = null;
+  let selectedSlide2Variant = null;
+  const colorDictionary = {
+    "Negro": "#000000",
+    "Azul": "#005BD3",
+    "Blanco": "#FFFFFF",
+    "Gris": "#808080",
+    "Gris Oxford": "#5B5D5F",
+    "Oro rosa": "#B76E79",
+    "Púrpura": "#A54DCF",
+    "Amarillo": "#FFE500",
+    "Naranja": "#FF8A00",
+    "Rosa": "#FFC0CB",
+    "Cafe": "#A67907",
+    "Azul cielo": "#099399",
+    "Beige": "#EAD8AB",
+    "Azul marino": "#282099",
+    "Verde": "#05AA3D",
+    "Marrón": "#9A5630",
+    "Vino": "#440122",
+    "Rojo": "#F61F1F",
+    "Blanco / Rojo": "repeating-linear-gradient(90deg, rgb(246 31 31), rgb(246 31 31) 4px, white 3px, white 7px)",
+    "Blanco / Azul": "repeating-linear-gradient(90deg, rgba(27, 34, 63, 1), rgba(27, 34, 63, 1) 4px, white 3px, white 7px)",
+    "Blanco / Durazno": "linear-gradient(90deg,rgba(232, 217, 206, 1) 50%, rgba(255, 255, 255, 1) 0%)",
+    "Blanco - Dorado": "linear-gradient(90deg,rgba(212, 154, 6, 1) 50%, rgba(255, 255, 255, 1) 0%)",
+    "Blanco - Gris": "linear-gradient(90deg,rgba(130, 130, 130, 1) 50%, rgba(255, 255, 255, 1) 50%)",
+    "Rayado": "repeating-linear-gradient(90deg, #000000, #000000 4px, #ffffff 3px, #ffffff 6px)",
+    "Rayado Gris / Rojo": "linear-gradient(90deg, #808080 0%, #808080 40%, #cd0000 40%, #cd0000 70%, #ffffff 70%, #ffffff 100%)",
+    
+  };
+
+  function goToSlide(slideNumber) {
+    if (slideNumber === 2 && !selectedSlide1Variant) {
+      alert("Primero debes seleccionar un producto del Slide 1.");
+      return;
+    }
+    document.querySelectorAll('.slide').forEach(slide => slide.classList.remove('active'));
+    document.querySelector(`#slide-${slideNumber}`).classList.add('active');
+
+    document.querySelectorAll('.dot').forEach(dot => dot.classList.remove('active'));
+    document.querySelectorAll('.dot')[slideNumber - 1].classList.add('active');
+
+    currentSlide = slideNumber;
+  }
+
+  function handleCardClick(event, card) {
+    const slideNumber = parseInt(card.dataset.slide);
+    const variantId = card.dataset.variantId;
+
+    if (!variantId) return;
+
+    document.querySelectorAll(`.product-card2[data-slide='${slideNumber}']`).forEach(c => c.classList.remove("selected"));
+    card.classList.add("selected");
+
+    if (slideNumber === 1) {
+      selectedSlide1Variant = variantId;
+      selectedSlide2Variant = null;
+      document.querySelectorAll(`.product-card2[data-slide='2']`).forEach(c => c.classList.remove("selected"));
+
+      const handle = card.dataset.handle;
+      document.querySelectorAll('.complementary-group').forEach(group => group.style.display = 'none');
+      const relatedGroup = document.getElementById(`complementary-${handle}`);
+      if (relatedGroup) relatedGroup.style.display = 'block';
+
+      goToSlide(2);
+    } else if (slideNumber === 2) {
+      selectedSlide2Variant = variantId;
+      goToSlide(3);
+      showSummary();
+    }
+  }
+
+  function validateBeforeSlide3() {
+    if (!selectedSlide1Variant || !selectedSlide2Variant) {
+      alert("Debes seleccionar un producto del slide 1 y otro del slide 2 antes de continuar.");
+      return;
+    }
+    goToSlide(3);
+    showSummary();
+  }
+
+  function addToCart() {
+    const itemsToAdd = [];
+    const formGroups = document.querySelectorAll(".variant-select-group");
+    formGroups.forEach(group => {
+      const colorSelect = group.querySelector(".color-select");
+      const sizeSelect = group.querySelector(".size-select");
+      const variantId = sizeSelect.value;
+      if (variantId) {
+        itemsToAdd.push({ id: parseInt(variantId), quantity: 1 });
+      }
+    });
+
+    if (itemsToAdd.length === 0) {
+      alert("No has seleccionado ningún producto.");
+      return;
+    }
+
+    fetch("/cart/add.js", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: itemsToAdd })
+    })
+      .then(response => {
+        if (!response.ok) throw new Error("Error al agregar al carrito");
+        return response.json();
+      })
+      .then(resp => {
+        window.location.href = "/cart";
+      })
+      .catch(err => {
+        alert("Hubo un problema al agregar al carrito. Intenta de nuevo.");
+      });
+  }
+
+  function showSummary() {
+    const summaryContainer = document.getElementById("selected-summary");
+    summaryContainer.innerHTML = "";
+
+    [selectedSlide1Variant, selectedSlide2Variant].forEach(variantId => {
+      if (!variantId) return;
+
+      const card = document.querySelector(`[data-variant-id='${variantId}']`);
+      if (card) {
+        const handle = card.dataset.handle || card.dataset.productHandle;
+        const product = Shopify.productData[handle];
+
+        if (product) {
+          const wrapper = document.createElement("div");
+          wrapper.classList.add("product-card2");
+
+          const image = document.createElement("img");
+          image.src = product.featured_image;
+          image.alt = product.title;
+          wrapper.appendChild(image);
+
+          const title = document.createElement("p");
+          title.innerText = product.title;
+          title.classList.add("h6");
+          wrapper.appendChild(title);
+
+          const variantGroup = document.createElement("div");
+          variantGroup.classList.add("variant-select-group");
+
+          const sizeValues = [...new Set(product.variants.map(v => v.title.split(" / ")[0]))];
+          const colorValues = [...new Set(product.variants.map(v => v.title.split(" / ")[1]))];
+
+          // Crear el select para Tallas
+          const sizeSelect = document.createElement("select");
+          sizeSelect.classList.add("size-select");
+
+          // Contenedor de botones de color
+          const colorContainer = document.createElement("div");
+          colorContainer.classList.add("color-buttons");
+
+          let selectedColor = colorValues[0]; // color por defecto
+
+          // Función para actualizar las tallas según el color
+          function updateSizeOptions(selectedColor) {
+            sizeSelect.innerHTML = "";
+            sizeValues.forEach(size => {
+              const matchedVariant = product.variants.find(v => v.title === `${size} / ${selectedColor}` && v.available);
+              if (matchedVariant) {
+                const option = document.createElement("option");
+                option.value = matchedVariant.id;
+                option.innerText = size;
+                sizeSelect.appendChild(option);
+              }
+            });
+          
+            // Opcional: deshabilitar el dropdown si no hay opciones
+            if (sizeSelect.options.length === 0) {
+              const option = document.createElement("option");
+              option.disabled = true;
+              option.innerText = "Sin stock";
+              sizeSelect.appendChild(option);
+              sizeSelect.disabled = true;
+            } else {
+              sizeSelect.disabled = false;
+            }
+          }
+
+
+          // Crear botones de color
+          colorValues.forEach(color => {
+            // Verifica si hay al menos una variante disponible para este color
+            const hasStock = product.variants.some(v => {
+              const [size, variantColor] = v.title.split(" / ");
+              return variantColor === color && v.available;
+            });
+          
+            if (!hasStock) return; // No crear el botón si no hay stock
+          
+            const button = document.createElement("button");
+            button.type = "button";
+            button.classList.add("color-button");
+            button.setAttribute("title", color); // Tooltip
+            const colorCode = colorDictionary[color] || "#ccc";
+            button.style.background = colorCode;
+          
+            if (color === selectedColor) button.classList.add("active");
+          
+            button.addEventListener("click", () => {
+              selectedColor = color;
+            
+              // Actualizar botones activos
+              colorContainer.querySelectorAll("button").forEach(btn => btn.classList.remove("active"));
+              button.classList.add("active");
+            
+              // Actualizar imagen a la de la variante correspondiente al color
+              const variantWithImage = product.variants.find(v => v.title.includes(` / ${color}`) && v.image);
+              if (variantWithImage && variantWithImage.image) {
+                image.src = variantWithImage.image;
+              }
+            
+              updateSizeOptions(selectedColor);
+            });
+
+          
+            colorContainer.appendChild(button);
+          });
+
+
+          // Inicializar tallas con el color por defecto
+          updateSizeOptions(selectedColor);
+
+          // Añadir elementos al grupo y al wrapper
+          variantGroup.appendChild(colorContainer);
+          variantGroup.appendChild(sizeSelect);
+          wrapper.appendChild(variantGroup);
+          summaryContainer.appendChild(wrapper);
+        }
+      }
+    });
+  }
+
+
+  goToSlide(1);
+</script>
+
+<script>
+  window.Shopify = window.Shopify || {};
+  Shopify.productData = {};
+  {% assign all_handles = '' %}
+  {% for product in collections['gifts'].products %}
+    {% assign all_handles = all_handles | append: product.handle | append: ',' %}
+    {% for related in product.metafields.custom.completatulook.value %}
+      {% assign all_handles = all_handles | append: related.handle | append: ',' %}
+    {% endfor %}
+  {% endfor %}
+  {% assign all_handles_array = all_handles | split: ',' | uniq %}
+  {% for handle in all_handles_array %}
+    {% assign p = all_products[handle] %}
+    Shopify.productData['{{ handle }}'] = {
+  title: {{ p.title | json }},
+  featured_image: {{ p.featured_image | img_url: 'medium' | json }},
+  variants: [
+    {% for v in p.variants %}
+      {
+        id: {{ v.id }},
+        title: {{ v.title | json }},
+        available: {{ v.available | json }},
+        image: {{ v.featured_image | img_url: 'medium' | json }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ]
+};
+
+  {% endfor %}
+
+
+  
+</script>
