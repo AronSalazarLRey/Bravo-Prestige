@@ -1,0 +1,56 @@
+{
+  "product_name": "GORRA GALES",
+  "image": "https://cdn.shopify.com/s/files/1/0481/0273/6030/files/AREAS-GALES.jpg?v=1749061330",
+  "areas": [
+    {
+      "name": "Frente",
+      "alt": "F",
+      "coordinates": {
+        "coords": "1320,1318,211",
+        "shape": "circle"
+      },
+      "dimensions": {
+        "width": "14 cm",
+        "height": "6 cm"
+      }
+    },
+    {
+      "name": "Lateral izquiero",
+      "alt": "L-I",
+      "coordinates": {
+        "coords": "1899,895,199",
+        "shape": "circle"
+      },
+      "dimensions": {
+        "width": "8 cm",
+        "height": "5 cm"
+      }
+    },
+    {
+      "name": "Lateral derecho",
+      "alt": "L-D",
+      "coordinates": {
+        "coords": "735,881,187",
+        "shape": "circle"
+      },
+      "dimensions": {
+        "width": "8 cm",
+        "height": "5 cm"
+      }
+    },
+    {
+      "name": "Atras",
+      "alt": "A",
+      "coordinates": {
+        "coords": "1327,624,136",
+        "shape": "circle"
+      },
+      "dimensions": {
+        "width": "10 cm",
+        "height": "2 cm"
+      }
+    }
+  ]
+}
+
+

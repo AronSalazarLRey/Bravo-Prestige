@@ -52,8 +52,28 @@
 
 <style>
   .look-slider { position: relative; overflow: hidden; }
-  .slide { display: none; padding: 20px; }
-  .slide.active { display: block; }
+  .slide {
+    display: none;
+    padding: 20px;
+    opacity: 0;
+    transform: translateX(50px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .slide.active {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .slide.slide-out {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .slide.slide-in {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.5s, transform 0.5s;
+  }
   .product-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -178,8 +198,29 @@
       alert("Primero debes seleccionar un producto del Slide 1.");
       return;
     }
-    document.querySelectorAll('.slide').forEach(slide => slide.classList.remove('active'));
-    document.querySelector(`#slide-${slideNumber}`).classList.add('active');
+
+    const slides = document.querySelectorAll('.slide');
+    const current = document.querySelector('.slide.active');
+    const next = document.querySelector(`#slide-${slideNumber}`);
+
+    if (current && current !== next) {
+      current.classList.remove('active');
+      current.classList.add('slide-out');
+      setTimeout(() => {
+        current.classList.remove('slide-out');
+        current.style.display = 'none';
+        next.style.display = 'block';
+        next.classList.add('slide-in');
+        setTimeout(() => {
+          next.classList.remove('slide-in');
+          next.classList.add('active');
+        }, 10); // pequeño delay para activar la transición
+      }, 500); // duración igual a la transición CSS
+    } else {
+      slides.forEach(slide => slide.classList.remove('active'));
+      next.classList.add('active');
+      next.style.display = 'block';
+    }
 
     document.querySelectorAll('.dot').forEach(dot => dot.classList.remove('active'));
     document.querySelectorAll('.dot')[slideNumber - 1].classList.add('active');
